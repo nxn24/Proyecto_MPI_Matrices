@@ -50,7 +50,10 @@ static inline int Finalizar_MPI(void) { return EXITO_MPI; }
 #define MPI_SUCCESS EXITO_MPI
 #endif
 
-
+/**
+ * Imprime información básica del entorno de ejecución MPI,
+ * como el número de procesos y si se está usando MPI real o simulado.
+ */
 void mostrar_info_mpi(int rango, int tamano) {
    if (rango == 0) {
        printf("\n=== SISTEMA MPI ===\n");
@@ -64,7 +67,10 @@ void mostrar_info_mpi(int rango, int tamano) {
    }
 }
 
-
+/**
+ * Valida y procesa el tamaño de matriz recibido por línea de comandos.
+ * Solo el proceso raíz imprime errores para evitar duplicación de mensajes.
+ */
 int procesar_argumentos(int argc, char* argv[], int rango) {
    int N = TAMANIO_POR_DEFECTO;
 
@@ -99,7 +105,17 @@ double medir_tiempo_mpi_wrapper(const double* A, const double* B, double* C, int
    return MPI_Wtime() - inicio;
 }
 
-
+/**
+ * Controla el flujo principal del experimento de multiplicación de matrices.
+ *
+ * Etapas:
+ *   1. Inicialización y llenado de matrices (solo en rank 0)
+ *   2. Ejecución secuencial (baseline)
+ *   3. Ejecución paralela con Scatter/Gather
+ *   4. Ejecución paralela con Broadcast
+ *   5. Validación de resultados
+ *   6. Reporte de speedup
+ */
 void ejecutar_demo_paralela(int N, int rango, int tamano) {
    double tiempo_secuencial = 0.0;
    double tiempo_scatter = 0.0;

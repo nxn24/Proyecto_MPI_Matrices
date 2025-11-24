@@ -59,7 +59,19 @@ static inline int MPI_Reduce(const void* sendbuf, void* recvbuf, int count,
 // IMPLEMENTACIÓN SCATTER/GATHER - Distribución por filas
 // ============================================================================
 
-
+/**
+ * Esta función divide la matriz A en bloques de filas (striping),
+ * los distribuye entre los procesos mediante MPI_Scatterv, replica
+ * la matriz B completa en todos los procesos mediante MPI_Bcast,
+ * y finalmente reúne los resultados parciales de cada proceso en
+ * la matriz C del proceso raíz mediante MPI_Gatherv.
+ *
+ * Parámetros:
+ *  A : Matriz A completa (solo relevante en el proceso raíz).
+ *  B : Matriz B completa (solo relevante en el proceso raíz).
+ *  C : Matriz de salida, ensamblada únicamente en el proceso raíz.
+ *  n : Dimensión de las matrices cuadradas (n x n).
+ */
 void multiplicar_matrices_mpi_scatter(const double* A, const double* B, double* C, int n) {
    int rango, tamano;
    MPI_Comm_rank(MPI_COMM_WORLD, &rango);
@@ -194,7 +206,12 @@ void multiplicar_matrices_mpi_scatter(const double* A, const double* B, double* 
 // ============================================================================
 // IMPLEMENTACIÓN BROADCAST - Todos tienen matrices completas
 // ============================================================================
-
+/**
+ * Cada proceso recibe las matrices completas A y B mediante MPI_Bcast,
+ * pero solo calcula un subconjunto de filas asignado mediante una división
+ * manual del dominio. Al finalizar, los resultados parciales se combinan
+ * usando MPI_Reduce.
+ */
 
 void multiplicar_matrices_mpi_broadcast(const double* A, const double* B, double* C, int n) {
    int rango, tamano;
@@ -265,6 +282,13 @@ void multiplicar_matrices_mpi_broadcast(const double* A, const double* B, double
 // ============================================================================
 // FUNCIONES AUXILIARES
 // ============================================================================
+/**
+ * Mide el tiempo de ejecución de cualquier función paralela basada en MPI.
+ *
+ * La medición se sincroniza mediante barreras antes y después de ejecutar
+ * la función de multiplicación para asegurar que todos los procesos midan
+ * el mismo intervalo de tiempo.
+ */
 
 
 double medir_tiempo_mpi_paralelo(const double* A, const double* B, double* C, int n,
@@ -280,7 +304,18 @@ double medir_tiempo_mpi_paralelo(const double* A, const double* B, double* C, in
    return MPI_Wtime() - inicio;
 }
 
-
+/**
+ * Ejecuta una comparación cuantitativa entre:
+ *   - Versión secuencial
+ *   - Versión MPI Scatter/Gather
+ *   - Versión MPI Broadcast
+ *
+ * Para un tamaño n de matriz, esta función:
+ *   1. Genera matrices aleatorias A y B.
+ *   2. Ejecuta cada algoritmo.
+ *   3. Verifica la corrección numérica.
+ *   4. Calcula speedup y muestra los tiempos.
+ */
 bool comparar_rendimiento_mpi(int n) {
    int rango;
    MPI_Comm_rank(MPI_COMM_WORLD, &rango);
@@ -361,7 +396,12 @@ bool comparar_rendimiento_mpi(int n) {
    }
 }
 
-
+/**
+ * Ejecuta una batería de pruebas con matrices de tamaños crecientes.
+ *
+ * Esta función está pensada para automatizar la generación de resultados
+ * experimentales y alimentar tablas o gráficos de speedup.
+ */
 void ejecutar_pruebas_rendimiento(void) {
    int rango;
    MPI_Comm_rank(MPI_COMM_WORLD, &rango);
